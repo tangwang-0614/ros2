@@ -57,6 +57,7 @@ ROS每章节运行代码:
 * [手动控制](./set_up_and_connect_to_carla.md)
 * [生成对象](./ground/carla_spawn_objects.md)
 * [地面载具物理仿真与键盘运动控制](./ground/carla_keyboard_control.md)
+* [深度相机端到端巡航控制（行为克隆）](./ground/depth_e2e_cruise.md) —— 深度图输入 MLP 直接输出速度指令，含示范采集、训练、推理与多场景性能评测完整闭环
 * [阿克曼控制](./ground/ackermann_control.md)
 * [路径点发布器](./ground/waypoint.md)
 * [自动驾驶代理](./ground/ad_agent.md)

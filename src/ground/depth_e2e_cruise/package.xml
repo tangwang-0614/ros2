@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>depth_e2e_cruise</name>
+  <version>0.1.0</version>
+  <description>
+    基于行为克隆的地面机器人端到端巡航控制（ROS1 Noetic + Gazebo）。
+    以 TurtleBot3 waffle 的 RealSense 深度图像为唯一输入，经 MLP 直接输出
+    /cmd_vel 速度指令，替代"建图-规划-控制"流水线；含示范采集、离线训练、
+    在线推理与运行日志评测四部分。
+  </description>
+  <maintainer email="tangwang-0614@example.com">tangwang-0614</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>rospy</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>turtlebot3_gazebo</exec_depend>
+  <exec_depend>turtlebot3_teleop</exec_depend>
+
+  <export/>
+</package>

@@ -1,0 +1,34 @@
+# 深度相机端到端巡航参数
+# mode 由 main.launch 的 mode 参数注入（infer=端到端推理 / collect=键盘示范采集）
+
+topic:
+  depth: "/camera/depth/image_raw"   # TurtleBot3 waffle RealSense 深度图
+  cmd_vel: "/cmd_vel"                # 速度指令（Gazebo 差速驱动 / 示范采集共用）
+
+preprocess:
+  grid_rows: 24          # 深度图降采样网格行数（480/24=20，每格 20x20 取最小值）
+  grid_cols: 32          # 网格列数（640/32=20）
+  min_range: 0.05        # 有效深度下限 m（低于此值视为噪点）
+  max_range: 5.0         # 有效深度上限 m（inf/nan/超限一律截断为该值）
+
+control:
+  max_lin: 0.22          # 线速度上限 m/s（TurtleBot3 waffle 额定最大速度）
+  max_ang: 2.84          # 角速度上限 rad/s（TurtleBot3 waffle 额定最大角速度）
+  publish_hz: 10.0       # 推理发布频率 Hz
+  smooth_alpha: 0.5      # 输出低通系数（1=不平滑，越小越平滑）
+
+model:
+  path: "models/model.pth"   # 相对包根目录；训练产物不入库，用 train.py 复现
+  hidden: 64                 # MLP 隐层宽度
+
+log:
+  enable: true           # 推理时是否记录运行日志（供 evaluate.py 评测）
+  dir: "runs"            # 日志目录（CSV 文本，可入库作为评测证据）
+  collision_depth: 0.12  # 最小深度低于该值记一次"碰撞/贴障"事件 m
+
+collect:
+  record_hz: 10.0        # 采样频率 Hz
+  min_v: 0.02            # 线速度低于该值不采集 m/s（视为静止/原地调整）
+  min_w: 0.05            # 角速度低于该值不采集 rad/s
+  max_depth_age: 0.5     # 深度图超过该时长未更新则暂停采集 s
+  out: "data"            # 数据集输出目录（npz 不入库，网盘分享）

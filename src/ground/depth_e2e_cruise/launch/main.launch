@@ -1,0 +1,54 @@
+<launch>
+  <!-- ============================================================
+       depth_e2e_cruise 统一启动入口
+         端到端自主巡航（推理）:
+           roslaunch depth_e2e_cruise main.launch
+         键盘示范采集（采集 -> 训练 -> 推理 -> 评测 完整闭环的第一步）:
+           roslaunch depth_e2e_cruise main.launch mode:=collect
+         多场景切换（world / house / empty，供多场景测试与性能评价）:
+           roslaunch depth_e2e_cruise main.launch scenario:=house
+       前置依赖: sudo apt install ros-noetic-turtlebot3-gazebo
+                           ros-noetic-turtlebot3-teleop xterm
+       机器人: TurtleBot3 waffle（自带 RealSense 深度相机，
+               深度话题 /camera/depth/image_raw）
+       ============================================================ -->
+
+  <arg name="mode" default="infer" doc="infer=端到端推理巡航 / collect=键盘示范采集"/>
+  <arg name="scenario" default="world" doc="Gazebo 场景: world | house | empty"/>
+  <arg name="model_path" default="" doc="权重路径，留空则用 config/depth_e2e.yaml 的 model/path"/>
+  <arg name="log_enable" default="true" doc="推理时是否记录运行日志（供 evaluate.py 评测）"/>
+  <arg name="use_xterm" default="true" doc="collect 模式是否用 xterm 弹出键盘窗口（需安装 xterm）"/>
+
+  <!-- TurtleBot3 waffle 自带深度相机，是本模块的感知输入来源 -->
+  <env name="TURTLEBOT3_MODEL" value="waffle"/>
+
+  <rosparam command="load" file="$(find depth_e2e_cruise)/config/depth_e2e.yaml"/>
+  <param name="log/enable" value="$(arg log_enable)"/>
+  <!-- 日志文件名带场景标记，便于 evaluate.py 按场景对比 -->
+  <param name="log/tag" value="$(arg scenario)"/>
+  <param if="$(eval arg('model_path') != '')" name="model/path" value="$(arg model_path)"/>
+
+  <!-- ============ 场景加载（三个原生 Gazebo 场景，多场景测试用） ============ -->
+  <include if="$(eval arg('scenario') == 'world')"
+           file="$(find turtlebot3_gazebo)/launch/turtlebot3_world.launch"/>
+  <include if="$(eval arg('scenario') == 'house')"
+           file="$(find turtlebot3_gazebo)/launch/turtlebot3_house.launch"/>
+  <include if="$(eval arg('scenario') == 'empty')"
+           file="$(find turtlebot3_gazebo)/launch/turtlebot3_empty_world.launch"/>
+
+  <!-- ============ 模式一：端到端推理自主巡航 ============ -->
+  <group if="$(eval arg('mode') == 'infer')">
+    <node pkg="depth_e2e_cruise" type="main.py" name="depth_e2e_cruise" output="screen"/>
+  </group>
+
+  <!-- ============ 模式二：键盘示范采集 ============
+       键盘节点经 roslaunch 拿不到 stdin，用 xterm 单独弹窗承载（与
+       uav_keyboard_control 同一方案）；不想装 xterm 就把 use_xterm 置 false，
+       另开终端运行 rosrun turtlebot3_teleop turtlebot3_teleop_keyboard -->
+  <group if="$(eval arg('mode') == 'collect')">
+    <node pkg="depth_e2e_cruise" type="collect_data.py" name="depth_e2e_collect"
+          output="screen"/>
+    <node if="$(arg use_xterm)" pkg="turtlebot3_teleop" type="turtlebot3_teleop_keyboard"
+          name="teleop_keyboard" output="screen" launch-prefix="xterm -e"/>
+  </group>
+</launch>
